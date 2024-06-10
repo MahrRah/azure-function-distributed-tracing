@@ -7,7 +7,7 @@ Distributed tracing sample for Azure Durable Functions
 Copy the file `.env.sample` to be `.env` at the root of the repository.
 
 ```txt
-FUNCTION_URL=http://localhost:7071
+FUNCTION_URL=<base-url-of-azure-function>
 ```
 
 ## Run application
