@@ -1,10 +1,12 @@
 
-all: start
+include .env
 
-start:
-	cd src/function && func start
+all: start-func serve
 
-run:
+start-func:
+	cd src/function && func host start --port 7071
+
+serve:
 	cd src/api && poetry run uvicorn app:app --reload 
 
 format:
