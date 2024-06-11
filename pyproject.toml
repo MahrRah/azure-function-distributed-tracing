@@ -6,14 +6,15 @@ authors = ["Jean-Baptiste Ranson <jranson@microsoft.com>", "Tamara Rahimi <tamar
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python =  ">=3.8,<3.10"
 azure-functions = "^1.8.0"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+azure-functions-durable = "^1.0.0b1"
 black = "^21.12b0"
 isort = "^5.10.3"
 fastapi = "^0.70.0"
 uvicorn = "^0.15.0"
 requests = "^2.26.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
