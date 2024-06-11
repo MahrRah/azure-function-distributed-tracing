@@ -8,6 +8,8 @@ import azure.functions as func
 
 bp = df.Blueprint()
 
+logger = logging.getLogger(__name__)
+
 
 @bp.route(route="handlers")
 @bp.durable_client_input(client_name="client")
