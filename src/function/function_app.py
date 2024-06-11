@@ -23,9 +23,9 @@ URLLib3Instrumentor().instrument()
 
 
 setup_telemetry_export(
-    service_name="orchestrationFunction",
+    service_name="orchestration-function",
     service_instance_id="instance-1",
-    service_version="1.0.",
+    service_version="1.0.0",
     application_insights_connection_string=os.getenv(
         "APPLICATIONINSIGHTS_CONNECTION_STRING", None
     ),
