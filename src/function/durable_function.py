@@ -2,6 +2,8 @@ import logging
 
 import azure.durable_functions as df
 import azure.functions as func
+from opentelemetry import trace
+from opentelemetry.propagate import extract
 
 # To learn more about blueprints in the Python prog model V2,
 # see: https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-python?tabs=asgi%2Capplication-level&pivots=python-mode-decorators#blueprints
@@ -13,12 +15,22 @@ logger = logging.getLogger(__name__)
 
 @bp.route(route="handlers")
 @bp.durable_client_input(client_name="client")
-async def start_orchestrator(req: func.HttpRequest, client):
-    logger.info("Starting new orchestration client")
-    instance_id = await client.start_new("my_orchestrator")
+async def start_orchestrator(req: func.HttpRequest, client, context):
+    carrier = {
+        "traceparent": context.trace_context.Traceparent,
+        "tracestate": context.trace_context.Tracestate,
+    }
+    tracer = trace.get_tracer(__name__)
 
-    logging.info(f"Started orchestration with ID = '{instance_id}'.")
-    return client.create_check_status_response(req, instance_id)
+    with tracer.start_as_current_span(
+        "http_trigger_span",
+        context=extract(carrier),
+    ):
+        logger.info("Starting new orchestration client")
+        instance_id = await client.start_new("my_orchestrator")
+
+        logging.info(f"Started orchestration with ID = '{instance_id}'.")
+        return client.create_check_status_response(req, instance_id)
 
 
 @bp.orchestration_trigger(context_name="context")
