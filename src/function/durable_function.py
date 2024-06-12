@@ -21,7 +21,7 @@ async def start_orchestrator(req: func.HttpRequest, client, context):
         "tracestate": context.trace_context.Tracestate,
     }
     tracer = trace.get_tracer(__name__)
-    
+
     # This manual trace context is needed to correlate the host logs with the ones from the worker
     with tracer.start_as_current_span(
         "http_trigger_span",
