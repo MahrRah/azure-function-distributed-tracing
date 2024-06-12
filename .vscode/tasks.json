@@ -3,14 +3,13 @@
 	"tasks": [
 		{
 			"type": "func",
-			"label": "Start function locally",
+			"label": "Start function",
 			"command": "host start",
 			"problemMatcher": "$func-python-watch",
 			"isBackground": true,
 			"options": {
 				"cwd": "${workspaceFolder}/src/function"
 			},
-			"virtualEnv": "${workspaceFolder}/.venv"
 		},
 	
 	]
