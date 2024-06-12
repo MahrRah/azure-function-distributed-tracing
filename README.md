@@ -3,7 +3,7 @@
 Distributed tracing sample for Azure Durable Functions
 
 ## Prerequisites
-
+ 
 ### Poetry
 
 To create the virtual environment start by doing a poetry install
@@ -12,16 +12,29 @@ To create the virtual environment start by doing a poetry install
 poetry install
 ```
 
+### Provision infrastructure
+
+In case you don't already have a [Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview) provisioned, you can use the make file to do so with.
+
+Copy the file `.env.sample` to be `.env` at the root of the repository.
+Used for the provisioning are the `ENV_LOCATION` and `ENV_PROJECT_NAME`, which are pre-populated with default values and can be replaced if needed.
+
+```txt
+FUNCTION_URL=http://localhost:7071/api/handlers
+APPLICATIONINSIGHTS_CONNECTION_STRING=
+ENV_LOCATION="westeurope"
+ENV_PROJECT_NAME="func-spike"
+```
+
 ## Run application
 
 ### Fast API
 
 ### 1. Configurations
 
-Copy the file `.env.sample` to be `.env` at the root of the repository.
+In the `.env` at the root of the repository make sure the following section ar populated with the correct connection string.
 
 ```txt
-FUNCTION_URL=<azure-function-url>
 APPLICATIONINSIGHTS_CONNECTION_STRING=<connection-string>
 ```
 
