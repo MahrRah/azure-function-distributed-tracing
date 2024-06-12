@@ -5,7 +5,7 @@ export
 all: start-func serve
 
 provision: 
-	./infra/provision.sh --create
+	./infra/setup.sh --create
 
 deprovision: 
 	./infra/setup.sh --delete

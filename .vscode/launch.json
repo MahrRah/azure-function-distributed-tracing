@@ -2,14 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Attach to Python Functions",
-            "type": "debugpy",
+            "name": "Debug Orchestrator",
+            "type": "python",
             "request": "attach",
-            "connect": {
-                "host": "localhost",
-                "port": 9091
-            },
-            "preLaunchTask": "func: host start"
-        }
+            "port": 9091,
+            "preLaunchTask": "Start function locally",
+          },
     ]
 }
