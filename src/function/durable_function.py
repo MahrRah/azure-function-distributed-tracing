@@ -11,6 +11,7 @@ from opentelemetry.propagate import extract
 bp = df.Blueprint()
 
 logger = logging.getLogger(__name__)
+tracer = trace.get_tracer(__name__)
 
 
 @bp.route(route="handlers")
@@ -20,7 +21,6 @@ async def start_orchestrator(req: func.HttpRequest, client, context):
         "traceparent": context.trace_context.Traceparent,
         "tracestate": context.trace_context.Tracestate,
     }
-    tracer = trace.get_tracer(__name__)
 
     # This manual trace context is needed to correlate the host logs with the ones from the worker
     with tracer.start_as_current_span(

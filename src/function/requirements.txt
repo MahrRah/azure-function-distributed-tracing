@@ -1,4 +1,12 @@
 # Do not include azure-functions-worker as it may conflict with the Azure Functions platform
-
 azure-functions
 azure-functions-durable>=1.2.4
+azure-monitor-opentelemetry-exporter>=1.0.0b24,<2.0.0
+azure-core-tracing-opentelemetry>=1.0.0b11,<2.0.0
+opentelemetry-instrumentation-logging>=0.45b0,<1.0.0
+opentelemetry-instrumentation-aiohttp-client>=0.45b0,<1.0.0
+opentelemetry-instrumentation-httpx>=0.45b0,<1.0.0
+opentelemetry-instrumentation-requests>=0.45b0,<1.0.0
+opentelemetry-instrumentation-urllib3>=0.45b0,<1.0.0
+opentelemetry-instrumentation-fastapi>=0.45b0,<1.0.0
+requests==2.26.0
