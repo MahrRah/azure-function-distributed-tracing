@@ -17,6 +17,9 @@ for handler in root_logger.handlers[:]:
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
 
+logging.getLogger("urllib3").setLevel(logging.INFO)
+logging.getLogger("azure").setLevel(logging.WARNING)
+
 AioHttpClientInstrumentor().instrument()
 RequestsInstrumentor().instrument()
 URLLib3Instrumentor().instrument()
