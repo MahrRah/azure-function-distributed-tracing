@@ -2,6 +2,16 @@
 
 Distributed tracing sample for Azure Durable Functions
 
+## Prerequisites
+
+### Poetry
+
+To create the virtual environment start by doing a poetry install
+
+```bash
+poetry install
+```
+
 ## Run application
 
 ### Fast API
