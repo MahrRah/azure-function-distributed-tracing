@@ -25,16 +25,11 @@ async def start_orchestrator(req: func.HttpRequest, client, context):
     }
 
     # This manual trace context is needed to correlate incoming http request with the orchestration
-    with tracer.start_as_current_span(
-        "start_orchestrator", context=extract(carrier)
-    ) as span:
+    with tracer.start_as_current_span("start_orchestrator", context=extract(carrier)):
 
         logger.info("Starting new orchestration client")
         job_id = str(uuid.uuid4())
-        child_span = _extract_context(span)
-        instance_id = await client.start_new(
-            "my_orchestrator", instance_id=job_id, client_input=child_span
-        )
+        instance_id = await client.start_new("my_orchestrator", instance_id=job_id)
 
         logging.info(f"Started orchestration with ID = '{instance_id}'.")
         return client.create_check_status_response(req, instance_id)
