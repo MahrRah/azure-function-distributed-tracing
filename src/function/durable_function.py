@@ -52,7 +52,7 @@ def my_orchestrator(context: df.DurableOrchestrationContext):
     result3 = yield context.call_activity("say_hello", "London")
     logger.info("Finish orchestration method")
 
-    child_span = _extract_context(trace.get_current_span() )
+    child_span = _extract_context(trace.get_current_span())
     logger.info("Persist entity state")
     entityId = df.EntityId("main_entity", 1)
     yield context.call_entity(entityId, "set", child_span)
@@ -64,6 +64,7 @@ def say_hello(city: str, context: func.Context) -> str:
     logger.info("Enter activity method")
     return f"Hello {city}!"
 
+
 @bp.entity_trigger(context_name="context", entity_name="main_entity")
 def persist_entity_state(context: df.DurableEntityContext) -> None:
     ctx = _create_context(context.get_input())
@@ -72,6 +73,7 @@ def persist_entity_state(context: df.DurableEntityContext) -> None:
         operation = context.operation_name
         if operation == "set":
             context.set_state(context.get_input())
+
 
 def _extract_context(span: Span):
     ctx = span.get_span_context()
