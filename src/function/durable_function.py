@@ -46,6 +46,7 @@ def my_orchestrator(context: df.DurableOrchestrationContext):
 
     with tracer.start_as_current_span("my_orchestrator", context=ctx) as span:
         logger.info("Enter orchestration method")
+
         logger.info("Call first action being called")
         child_span = _extract_context(span)
         result1 = yield context.call_activity(
@@ -60,6 +61,11 @@ def my_orchestrator(context: df.DurableOrchestrationContext):
             "say_hello", {"city": "London", "trace_context": child_span}
         )
         logger.info("Finish orchestration method")
+
+        logger.info("Persist entity state")
+        entityId = df.EntityId("main_entity", 1)
+        yield context.call_entity(entityId, "set", child_span)
+
         return [result1, result2, result3]
 
 
@@ -69,6 +75,16 @@ def say_hello(body: dict, context: func.Context) -> str:
     with tracer.start_as_current_span("say_hello", context=ctx):
         logger.info("Enter activity method")
         return f"Hello {body['city']}!"
+
+
+@bp.entity_trigger(context_name="context", entity_name="main_entity")
+def persist_entity_state(context: df.DurableEntityContext) -> None:
+    ctx = _create_context(context.get_input())
+    with tracer.start_as_current_span("set_entity", context=ctx):
+        logger.info("persist_entity_state being called")
+        operation = context.operation_name
+        if operation == "set":
+            context.set_state(context.get_input())
 
 
 def _extract_context(span: Span):
