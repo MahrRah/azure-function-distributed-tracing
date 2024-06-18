@@ -16,8 +16,17 @@ async def root():
 
 
 @router.get("/health")
-async def root():
+async def health():
     return {"Status": "OK"}
+
+
+@router.get("/invoke_api_test")
+async def invoke_test():
+    url = os.environ.get("FUNCTION_TEST_URL")
+    logger.info(f"Enter invocation method to call {url}")
+    response = requests.post(url)
+    logger.info(f"Response: {response}")
+    return response.json
 
 
 @router.post("/invoke_api", status_code=201)

@@ -21,7 +21,6 @@ tracer = trace.get_tracer(__name__)
 async def start_orchestrator(req: func.HttpRequest, client, context):
 
     logger.info("Starting new orchestration client")
-    job_id = str(uuid.uuid4())
     instance_id = await client.start_new("my_orchestrator")
 
     logging.info(f"Started orchestration with ID = '{instance_id}'.")
@@ -49,20 +48,3 @@ def say_hello(city: dict, context: func.Context) -> str:
 
     logger.info("Enter activity method")
     return f"Hello {city}!"
-
-
-def _extract_context(span: Span):
-    ctx = span.get_span_context()
-    return {
-        "trace_id": ctx.trace_id,
-        "span_id": ctx.span_id,
-    }
-
-
-def _create_context(span_context):
-    span_ctx = SpanContext(
-        trace_id=span_context["trace_id"],
-        span_id=span_context["span_id"],
-        is_remote=True,
-    )
-    return trace.set_span_in_context(trace.NonRecordingSpan(span_ctx))
