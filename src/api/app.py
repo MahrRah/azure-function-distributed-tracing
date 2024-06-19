@@ -26,8 +26,8 @@ background_tasks: Set[asyncio.Task[Any]] = set()
 tracer = trace.get_tracer(__name__)
 
 root_logger = logging.getLogger()
-for handler in root_logger.handlers[:]:
-    root_logger.removeHandler(handler)
+for _handler in root_logger.handlers[:]:
+    root_logger.removeHandler(_handler)
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)

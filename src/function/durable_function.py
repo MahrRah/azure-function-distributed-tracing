@@ -25,6 +25,8 @@ async def start_orchestrator(req: func.HttpRequest, client, context):
         "traceparent": context.trace_context.Traceparent,
         "tracestate": context.trace_context.Tracestate,
     }
+    
+    logger.info(f"handlers / start_orchestration received {context.trace_context.Traceparent}")
 
     # This manual trace context is needed to correlate the host logs with the ones from the worker
     with tracer.start_as_current_span(
@@ -111,6 +113,8 @@ async def process_aml_event(
         "traceparent": context.trace_context.Traceparent,
         "tracestate": context.trace_context.Tracestate,
     }
+
+    logger.info(f"process_aml_events queue_trigger received {context.trace_context.Traceparent}")
 
     with tracer.start_as_current_span("queue_trigger", context=extract(carrier)) as span:
         
