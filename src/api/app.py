@@ -14,7 +14,7 @@ from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.urllib3 import URLLib3Instrumentor
 
 from opentelemetry import trace
-from opentelemetry.trace import SpanContext
+from opentelemetry.trace import SpanContext, SpanKind
 
 from azure.storage.queue import QueueClient
 from typing import Any, Set
@@ -77,7 +77,7 @@ async def process_messages(queue_client: QueueClient) -> None:
         logger.info(f"Processing message: {content}")
 
         ctx = _create_context(json.loads(content))
-        with tracer.start_as_current_span("api_service", context=ctx):
+        with tracer.start_as_current_span("api_service", kind=SpanKind.CONSUMER, context=ctx):
             logger.info("Enter api_service_message_consumer")
 
         queue_client.delete_message(message=message.id, pop_receipt=message.pop_receipt)

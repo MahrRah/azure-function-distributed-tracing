@@ -1,13 +1,14 @@
 import logging
 import uuid
 import json
+import re
 
 import azure.durable_functions as df
 import azure.functions as func
 
 from opentelemetry import trace
 from opentelemetry.propagate import extract
-from opentelemetry.trace import Span, SpanContext
+from opentelemetry.trace import Span, SpanContext, SpanKind
 
 # To learn more about blueprints in the Python prog model V2,
 # see: https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-python?tabs=asgi%2Capplication-level&pivots=python-mode-decorators#blueprints
@@ -21,6 +22,21 @@ tracer = trace.get_tracer(__name__)
 @bp.route(route="handlers")
 @bp.durable_client_input(client_name="client")
 async def start_orchestrator(req: func.HttpRequest, client, context):
+    
+    # traceparent = context.trace_context.Traceparent
+    
+    # parent_span = {}
+
+    # pattern = re.compile(r"00-(\w+)-(\w+)-\d+")
+    # match = pattern.match(traceparent)
+    # if match:
+    #     trace_id_hex, span_id_hex = match.groups()
+
+    #     parent_span["trace_id"] = int(trace_id_hex, 16)
+    #     parent_span["span_id"] = int(span_id_hex, 16)
+
+    # ctx = _create_context(parent_span)
+
     carrier = {
         "traceparent": context.trace_context.Traceparent,
         "tracestate": context.trace_context.Tracestate,
@@ -30,7 +46,7 @@ async def start_orchestrator(req: func.HttpRequest, client, context):
 
     # This manual trace context is needed to correlate the host logs with the ones from the worker
     with tracer.start_as_current_span(
-        "start_orchestrator", context=extract(carrier)
+        "start_orchestrator", kind=SpanKind.SERVER, context=extract(carrier)
     ) as span:
 
         logger.info("Starting new orchestration client")
@@ -116,7 +132,7 @@ async def process_aml_event(
 
     logger.info(f"process_aml_events queue_trigger received {context.trace_context.Traceparent}")
 
-    with tracer.start_as_current_span("queue_trigger", context=extract(carrier)) as span:
+    with tracer.start_as_current_span("queue_trigger", kind=SpanKind.PRODUCER, context=extract(carrier)) as span:
         
         logger.info("About to process inbound queue message")
 
