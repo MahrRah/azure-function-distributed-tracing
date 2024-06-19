@@ -1,12 +1,23 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-          {
-            "name": "Debug durable function",
-            "type": "python",
-            "request": "attach",
-            "port": 9091,
-            "preLaunchTask": "Start function",
-          },
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug durable function",
+      "type": "python",
+      "request": "attach",
+      "port": 9091,
+      "preLaunchTask": "Start function",
+    },
+    {
+      "name": "Python: FastAPI",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "cwd": "${workspaceFolder}/src/api",
+      "args": [
+        "app:app",
+        "--reload"
+      ]
+    }
+  ]
 }
