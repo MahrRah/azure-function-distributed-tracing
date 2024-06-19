@@ -19,6 +19,7 @@ tracer = trace.get_tracer(__name__)
 @bp.route(route="handlers")
 @bp.durable_client_input(client_name="client")
 async def start_orchestrator(req: func.HttpRequest, client, context):
+    logger.info(f"Traceparent: {context.trace_context.Traceparent}")
     carrier = {
         "traceparent": context.trace_context.Traceparent,
         "tracestate": context.trace_context.Tracestate,
@@ -71,8 +72,10 @@ def my_orchestrator(context: df.DurableOrchestrationContext):
 
 @bp.activity_trigger(input_name="body")
 def say_hello(body: dict, context: func.Context) -> str:
+    logger.info(f"Traceparent: {context.trace_context.Traceparent}")
     ctx = _create_context(body["trace_context"])
     with tracer.start_as_current_span("say_hello", context=ctx):
+        logger.info(f"Traceparent: {context.trace_context.Traceparent}")
         logger.info("Enter activity method")
         return f"Hello {body['city']}!"
 
