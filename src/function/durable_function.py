@@ -91,8 +91,10 @@ def my_orchestrator(context: df.DurableOrchestrationContext):
 
 @bp.activity_trigger(input_name="body")
 def say_hello(body: dict, context: func.Context) -> str:
+    logger.info(f"Traceparent: {context.trace_context.Traceparent}")
     ctx = _create_context(body["trace_context"])
     with tracer.start_as_current_span("say_hello", context=ctx):
+        logger.info(f"Traceparent: {context.trace_context.Traceparent}")
         logger.info("Enter activity method")
         return f"Hello {body['city']}!"
 
