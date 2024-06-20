@@ -8,7 +8,7 @@ import azure.functions as func
 
 from opentelemetry import trace
 from opentelemetry.propagate import extract
-from opentelemetry.trace import Span, SpanContext, SpanKind
+from opentelemetry.trace import Span, SpanContext, SpanKind, get_current_span
 
 # To learn more about blueprints in the Python prog model V2,
 # see: https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-python?tabs=asgi%2Capplication-level&pivots=python-mode-decorators#blueprints
@@ -23,35 +23,35 @@ tracer = trace.get_tracer(__name__)
 @bp.durable_client_input(client_name="client")
 async def start_orchestrator(req: func.HttpRequest, client, context):
     
-    # traceparent = context.trace_context.Traceparent
-    
-    # parent_span = {}
+    traceparent = context.trace_context.Traceparent
+    current_span = get_current_span()
 
     # pattern = re.compile(r"00-(\w+)-(\w+)-\d+")
     # match = pattern.match(traceparent)
     # if match:
     #     trace_id_hex, span_id_hex = match.groups()
-
-    #     parent_span["trace_id"] = int(trace_id_hex, 16)
-    #     parent_span["span_id"] = int(span_id_hex, 16)
-
-    # ctx = _create_context(parent_span)
+    #     parent_trace_id = int(trace_id_hex, 16)
+    #     parent_span_id = int(span_id_hex, 16)
+    #     logger.info(f"handlers / start_orchestration received trace_id:{parent_trace_id}, span_id:{parent_span_id}")
 
     carrier = {
         "traceparent": context.trace_context.Traceparent,
         "tracestate": context.trace_context.Tracestate,
     }
     
-    logger.info(f"handlers / start_orchestration received {context.trace_context.Traceparent}")
-
     # This manual trace context is needed to correlate the host logs with the ones from the worker
     with tracer.start_as_current_span(
         "start_orchestrator", kind=SpanKind.SERVER, context=extract(carrier)
     ) as span:
 
-        logger.info("Starting new orchestration client")
+        logger.info(f"start_orchestration received {traceparent}")
+        logger.info(f"start_orchestration current trace_id:{current_span._context.trace_id}, span_id:{current_span._context.span_id}")
+        
         job_id = str(uuid.uuid4())
         child_span = _extract_context(span)
+
+        logger.info(f"start_orchestation: child_trace_id:{child_span['trace_id']}, child_span_id:{child_span['span_id']}")
+
         instance_id = await client.start_new(
             "my_orchestrator", instance_id=job_id, client_input=child_span
         )
@@ -59,16 +59,22 @@ async def start_orchestrator(req: func.HttpRequest, client, context):
         logging.info(f"Started orchestration with ID = '{instance_id}'.")
         return client.create_check_status_response(req, instance_id)
 
-
 @bp.orchestration_trigger(context_name="context")
 def my_orchestrator(context: df.DurableOrchestrationContext):
+
     ctx = _create_context(context.get_input())
+    current_span = get_current_span()
 
     with tracer.start_as_current_span("my_orchestrator", context=ctx) as span:
-        logger.info("Enter orchestration method")
+
+        logger.info(f"my_orchestrator current trace_id:{current_span._context.trace_id}, span_id:{current_span._context.span_id}")
+
+        log_received_ctx(ctx, "my_orchestrator")
+
+        child_span = _extract_context(span)
+        logger.info(f"my_orchestrator: child_trace_id:{child_span['trace_id']}, child_span_id:{child_span['span_id']}")
 
         logger.info("Call first action being called")
-        child_span = _extract_context(span)
         result1 = yield context.call_activity(
             "say_hello", {"city": "Tokyo", "trace_context": child_span}
         )
@@ -91,19 +97,29 @@ def my_orchestrator(context: df.DurableOrchestrationContext):
 
 @bp.activity_trigger(input_name="body")
 def say_hello(body: dict, context: func.Context) -> str:
-    logger.info(f"Traceparent: {context.trace_context.Traceparent}")
+
+    current_span = get_current_span()
     ctx = _create_context(body["trace_context"])
-    with tracer.start_as_current_span("say_hello", context=ctx):
-        logger.info(f"Traceparent: {context.trace_context.Traceparent}")
-        logger.info("Enter activity method")
+
+    with tracer.start_as_current_span("say_hello", context=ctx) as span:
+        logger.info(f"say_hello current traceparent: {context.trace_context.trace_parent}")
+        logger.info(f"say_hello current trace_id:{current_span._context.trace_id}, span_id:{current_span._context.span_id}")
+        
+        child_span = _extract_context(span)
+        logger.info(f"say_hello: child_trace_id:{child_span['trace_id']}, child_span_id:{child_span['span_id']}")
+        log_received_ctx(ctx, "say_hello")
         return f"Hello {body['city']}!"
 
 
 @bp.entity_trigger(context_name="context", entity_name="main_entity")
 def persist_entity_state(context: df.DurableEntityContext) -> None:
+
+    current_span = get_current_span()
     ctx = _create_context(context.get_input())
+
     with tracer.start_as_current_span("set_entity", context=ctx):
-        logger.info("persist_entity_state being called")
+        logger.info(f"persist_entity_state current trace_id:{current_span._context.trace_id}, span_id:{current_span._context.span_id}")
+        log_received_ctx(ctx, "persist_entity_state")
         operation = context.operation_name
         if operation == "set":
             context.set_state(context.get_input())
@@ -157,3 +173,16 @@ def _create_context(span_context):
         is_remote=True,
     )
     return trace.set_span_in_context(trace.NonRecordingSpan(span_ctx))
+
+
+def log_received_ctx(ctx, prefix: str):
+    key = ''
+    for element in ctx:
+        key = element
+        break
+
+    ctx_trace_id = ctx[key]._context.trace_id
+    ctx_span_id = ctx[key]._context.span_id
+
+    logger.info(f"{prefix} received trace_id:{ctx_trace_id}, span_id:{ctx_span_id}")
+
