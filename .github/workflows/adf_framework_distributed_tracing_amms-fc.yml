@@ -64,20 +64,24 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip     
-        
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_78B4993B14284AFE9DE567B77165CB6B }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0DDCD16883CA41BDAD2A2C58C0FF4173 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_1A2FD38967A24345B2D9A59C785D39B3 }}
-
+      
+      - name:  Login
+        run :
+          az login -u  ${{ secrets.SP_ID }} -p ${{ secrets.SP_SECRET }}  
+      # - name: Login to Azure
+      #   uses: azure/login@v1
+      #   with:
+      #     client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_78B4993B14284AFE9DE567B77165CB6B }}
+      #     tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0DDCD16883CA41BDAD2A2C58C0FF4173 }}
+      #     subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_1A2FD38967A24345B2D9A59C785D39B3 }}
+          
 
       - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1
         id: deploy-to-function
         with:
           app-name: 'amms-fc'
+          slot-name: 'Production'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           scm-do-build-during-deployment: true
           enable-oryx-build: true
