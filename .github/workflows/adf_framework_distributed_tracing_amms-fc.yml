@@ -67,7 +67,7 @@ jobs:
       
       - name:  Login
         run :
-          az login -u  ${{ secrets.SP_ID }} -p ${{ secrets.SP_SECRET }}  
+         az login --service-principal -u   ${{ secrets.SP_ID }} -p ${{ secrets.SP_SECRET }}  --tenant  ${{ secrets.TENANT_ID }} 
       # - name: Login to Azure
       #   uses: azure/login@v1
       #   with:
