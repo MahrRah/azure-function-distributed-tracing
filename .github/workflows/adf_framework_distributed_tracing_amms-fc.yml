@@ -37,7 +37,7 @@ jobs:
       # Optional: Add step to run tests here
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./src/function/ -r
+        run: zip release.zip ./src/function/* -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
@@ -67,13 +67,7 @@ jobs:
       
       - name:  Login
         run :
-         az login --service-principal -u   ${{ secrets.SP_ID }} -p ${{ secrets.SP_SECRET }}  --tenant  ${{ secrets.TENANT_ID }} 
-      # - name: Login to Azure
-      #   uses: azure/login@v1
-      #   with:
-      #     client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_78B4993B14284AFE9DE567B77165CB6B }}
-      #     tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0DDCD16883CA41BDAD2A2C58C0FF4173 }}
-      #     subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_1A2FD38967A24345B2D9A59C785D39B3 }}
+         az login --service-principal -u  ${{ secrets.SP_ID }} -p ${{ secrets.SP_SECRET }}  --tenant  ${{ secrets.TENANT_ID }} 
           
 
       - name: 'Deploy to Azure Functions'
