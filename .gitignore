@@ -46,3 +46,31 @@ __pycache__/
 __blobstorage__
 __queuestorage__
 __azurite_db*__.json
+
+
+
+# Terraform files
+*.tfstate
+*.tfstate.backup
+*.tfplan
+.terraform/
+
+# Crash log files
+crash.log
+
+# Exclude any .tfvars files that are in the working directory
+# Exception to above rule to include tfvars.example files
+!example.tfvars
+*.auto.tfvars
+
+# Ignore override files as they are usually used to override resources locally and don't need to be committed
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+registry.terraform.io
+.terraform.lock.hcl
