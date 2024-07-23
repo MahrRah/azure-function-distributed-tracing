@@ -1,11 +1,13 @@
 import logging
+
 import os
 
-import handler
+
 from fastapi import FastAPI
+import handler
+from metric_background_task import generate_metric
 from observability_exporters import setup_telemetry_export
-from opentelemetry.instrumentation.aiohttp_client import \
-    AioHttpClientInstrumentor
+from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.urllib3 import URLLib3Instrumentor
@@ -13,8 +15,8 @@ from opentelemetry.instrumentation.urllib3 import URLLib3Instrumentor
 app = FastAPI()
 
 root_logger = logging.getLogger()
-for handler in root_logger.handlers[:]:
-    root_logger.removeHandler(handler)
+for handlers in root_logger.handlers[:]:
+    root_logger.removeHandler(handlers)
 
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
@@ -35,3 +37,5 @@ FastAPIInstrumentor.instrument_app(app)
 AioHttpClientInstrumentor().instrument()
 RequestsInstrumentor().instrument()
 URLLib3Instrumentor().instrument()
+
+generate_metric()
