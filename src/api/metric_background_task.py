@@ -6,9 +6,9 @@ from typing import Iterable
 from azure.identity import DefaultAzureCredential
 from azure.monitor.opentelemetry.exporter import AzureMonitorMetricExporter
 from azure.storage.queue import QueueClient
-
 from opentelemetry import metrics
-from opentelemetry.metrics import CallbackOptions, Observation, get_meter_provider
+from opentelemetry.metrics import (CallbackOptions, Observation,
+                                   get_meter_provider)
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 
@@ -17,6 +17,7 @@ queue_length_gauge = (
     .get_meter("storage_account_meter_api")
     .create_gauge("service-queue-length-gauge")
 )
+
 
 def get_client():
     queue_name = "baar"
@@ -42,7 +43,6 @@ def get_queue_length(client: QueueClient):
 
 
 def generate_metric():
-
 
     try:
         while True:

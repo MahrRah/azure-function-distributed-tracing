@@ -1,16 +1,13 @@
 import logging
 from typing import Optional, Sequence
+
 from opentelemetry.context import Context
-from opentelemetry.trace import SpanContext
-from opentelemetry.sdk.trace.sampling import (
-    Decision,
-    Sampler,
-    SamplingResult,
-    _get_parent_trace_state,
-)
-from opentelemetry.util.types import Attributes
-from opentelemetry.trace import Link, SpanKind, format_trace_id
+from opentelemetry.sdk.trace.sampling import (Decision, Sampler,
+                                              SamplingResult,
+                                              _get_parent_trace_state)
+from opentelemetry.trace import Link, SpanContext, SpanKind, format_trace_id
 from opentelemetry.trace.span import TraceState
+from opentelemetry.util.types import Attributes
 
 logger = logging.getLogger(__name__)
 

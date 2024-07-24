@@ -4,9 +4,9 @@ import os
 import azure.functions as func
 from azure.monitor.opentelemetry import configure_azure_monitor
 from durable_function import bp
-from observability_exporters import setup_telemetry_export
 from health import health_bp
 from mertics import metrics_bp
+from observability_exporters import setup_telemetry_export
 
 root_logger = logging.getLogger()
 for handlers in root_logger.handlers[:]:

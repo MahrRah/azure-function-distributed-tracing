@@ -2,10 +2,9 @@ import datetime
 import logging
 
 import azure.functions as func
-from azure.identity import DefaultAzureCredential
 from azure.storage.queue import QueueClient
+from client import get_queue_client
 from opentelemetry.metrics import get_meter_provider
-
 
 metrics_bp = func.Blueprint()
 
@@ -17,20 +16,17 @@ queue_length_gauge = (
     .create_gauge("queue-length-gauge")
 )
 
+from opentelemetry import trace
 
-def get_queue_length():
+client = get_queue_client()
+
+
+def get_queue_length(client: QueueClient):
     try:
-        #TODO: move this into a config file `queue_name` and `storage_account_name`
-        #TODO: client should only be created once as a singleton
-        queue_name = "baar"
-        storage_account_name = "ammssa"
-        account_url = f"https://{storage_account_name}.queue.core.windows.net"
-        default_credential = DefaultAzureCredential()
+        ctx = trace.get_current_span()
+        ctx.set_attribute("custom_attribute", "custom_value")
 
-        client = QueueClient(
-            account_url, queue_name=queue_name, credential=default_credential
-        )
-
+        
         properties = client.get_queue_properties()
         count = properties.approximate_message_count
         logger.info("Message count: " + str(count))
@@ -49,6 +45,6 @@ def run_metrics(mytimer: func.TimerRequest):
     if mytimer.past_due:
         logger.info("past due")
     logger.info("starting timer run for metrics")
-    length = get_queue_length()
+    length = get_queue_length(client)
     queue_length_gauge.set(length)
     logger.info("end timer run for metrics")

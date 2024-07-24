@@ -1,13 +1,12 @@
 import logging
-
 import os
 
-
-from fastapi import FastAPI
 import handler
+from fastapi import FastAPI
 from metric_background_task import generate_metric
 from observability_exporters import setup_telemetry_export
-from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
+from opentelemetry.instrumentation.aiohttp_client import \
+    AioHttpClientInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.urllib3 import URLLib3Instrumentor

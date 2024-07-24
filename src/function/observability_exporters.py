@@ -1,12 +1,11 @@
 import logging
 from typing import Optional
 
-from azure.monitor.opentelemetry.exporter import (
-    ApplicationInsightsSampler,
-    AzureMonitorLogExporter,
-    AzureMonitorMetricExporter,
-    AzureMonitorTraceExporter,
-)
+from azure.monitor.opentelemetry.exporter import (ApplicationInsightsSampler,
+                                                  AzureMonitorLogExporter,
+                                                  AzureMonitorMetricExporter,
+                                                  AzureMonitorTraceExporter)
+from custom_filter_sampler import CustomFilterSampler
 from opentelemetry import _logs, metrics, trace
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
@@ -16,8 +15,6 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv.resource import ResourceAttributes
-
-from custom_filter_sampler import CustomFilterSampler
 
 
 def setup_telemetry_export(
