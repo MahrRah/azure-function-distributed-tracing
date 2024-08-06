@@ -2,12 +2,18 @@ from azure.identity import DefaultAzureCredential
 from azure.storage.queue import QueueClient
 from pydantic import Field
 from pydantic_settings import BaseSettings
+import uuid
 
 
 class Settings(BaseSettings):
     storage_account_name: str = Field(validation_alias="STORAGE_ACCOUNT")
     queue_name: str = Field(validation_alias="QUEUE_NAME")
 
+
+class UniqueClient:
+    def __init__(self):
+        self.client= get_queue_client()
+        self.id = str(uuid.uuid4()) 
 
 def get_queue_client():
     try:

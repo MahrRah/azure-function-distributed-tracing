@@ -4,7 +4,7 @@
 		{
 			"type": "func",
 			"label": "Start function",
-			"command": "host start",
+			"command": "host start --verbo${pathSeparator}",
 			"problemMatcher": "$func-python-watch",
 			"isBackground": true,
 			"options": {

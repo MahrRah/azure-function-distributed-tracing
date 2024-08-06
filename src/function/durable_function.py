@@ -13,7 +13,7 @@ from opentelemetry.trace import Span, SpanContext
 bp = df.Blueprint()
 
 logger = logging.getLogger(__name__)
-tracer = trace.get_tracer(__name__)
+# tracer = trace.get_tracer(__name__)
 
 
 @bp.route(route="handlers")
@@ -59,10 +59,10 @@ def _extract_context(span: Span):
     }
 
 
-def _create_context(span_context):
-    span_ctx = SpanContext(
-        trace_id=span_context["trace_id"],
-        span_id=span_context["span_id"],
-        is_remote=True,
-    )
-    return trace.set_span_in_context(trace.NonRecordingSpan(span_ctx))
+# def _create_context(span_context):
+#     span_ctx = SpanContext(
+#         trace_id=span_context["trace_id"],
+#         span_id=span_context["span_id"],
+#         is_remote=True,
+#     )
+#     return trace.set_span_in_context(trace.NonRecordingSpan(span_ctx))

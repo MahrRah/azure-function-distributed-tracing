@@ -10,7 +10,6 @@ from opentelemetry.metrics import CallbackOptions, Observation
 from opentelemetry.sdk.metrics import MeterProvider, get_meter_provider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 
-
 configure_azure_monitor(
     connection_string="InstrumentationKey=e0b953a4-46b9-48af-bc40-2fa8654c8806;IngestionEndpoint=https://switzerlandnorth-0.in.applicationinsights.azure.com/;LiveEndpoint=https://switzerlandnorth.livediagnostics.monitor.azure.com/;ApplicationId=943aac6a-26de-4afc-98b9-6e80207a00fd"
 )
@@ -39,7 +38,9 @@ def get_queue_length():
         print("Exception:")
         print(ex)
 
+
 queue_length_gauge = None
+
 
 def get_queue_length_callback(_: CallbackOptions):
     value = get_queue_length()

@@ -22,42 +22,44 @@ provider "azurerm" {
 
 locals {
   env = "dev"
+  queue_name_one = "orchestrator-azureml-events-length"
+  queue_name_two = "service-ml-backend-events-length"
 }
 
-data "azurerm_logic_app_workflow" "teams_notification" {
-  name                = "alert-app-amms"
-  resource_group_name = "amms-spike"
-}
+# data "azurerm_logic_app_workflow" "teams_notification" {
+#   name                = "alert-app-amms"
+#   resource_group_name = "amms-spike"
+# }
 
 data "azurerm_application_insights" "app_insighst" {
   name                = var.application_insights_name
   resource_group_name = var.resource_group_name
 }
 
-data "azapi_resource_action" "logicapp_callbackurl" {
-  resource_id            = "${data.azurerm_logic_app_workflow.teams_notification.id}/triggers/manual"
-  action                 = "listCallbackUrl"
-  type                   = "Microsoft.Logic/workflows/triggers@2018-07-01-preview"
-  response_export_values = ["value"]
-}
-resource "azurerm_monitor_action_group" "teams_action_group" {
-  name                = "TeamsNotificationAction"
-  resource_group_name = var.resource_group_name
-  short_name          = "TeamsNotif"
+# data "azapi_resource_action" "logicapp_callbackurl" {
+#   resource_id            = "${data.azurerm_logic_app_workflow.teams_notification.id}/triggers/manual"
+#   action                 = "listCallbackUrl"
+#   type                   = "Microsoft.Logic/workflows/triggers@2018-07-01-preview"
+#   response_export_values = ["value"]
+# }
+# resource "azurerm_monitor_action_group" "teams_action_group" {
+#   name                = "TeamsNotificationAction"
+#   resource_group_name = var.resource_group_name
+#   short_name          = "TeamsNotif"
 
-  logic_app_receiver {
-    name                    = data.azurerm_logic_app_workflow.teams_notification.name
-    resource_id             = data.azurerm_logic_app_workflow.teams_notification.id
-    callback_url            = jsondecode(data.azapi_resource_action.logicapp_callbackurl.output).value
-    use_common_alert_schema = true
-  }
+#   logic_app_receiver {
+#     name                    = data.azurerm_logic_app_workflow.teams_notification.name
+#     resource_id             = data.azurerm_logic_app_workflow.teams_notification.id
+#     callback_url            = jsondecode(data.azapi_resource_action.logicapp_callbackurl.output).value
+#     use_common_alert_schema = true
+#   }
 
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
-}
+#   lifecycle {
+#     ignore_changes = [
+#       tags
+#     ]
+#   }
+# }
 
 resource "azurerm_monitor_metric_alert" "error_logs_alert" {
   name                     = "Warning, Error and Critical Log Alert - ${title(local.env)}"
@@ -90,10 +92,56 @@ resource "azurerm_monitor_metric_alert" "error_logs_alert" {
   frequency     = "PT1M"
   window_size   = "PT5M"
 
-  action {
-    action_group_id = azurerm_monitor_action_group.teams_action_group.id
-  }
+  # action {
+  #   action_group_id = azurerm_monitor_action_group.teams_action_group.id
+  # }
 
+  lifecycle {
+    ignore_changes = [
+      tags["SEALZ-CostCenter"],
+      tags["SEALZ-BusinessUnit"],
+      tags["SEALZ-DataClassification"],
+    ]
+  }
+}
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {
+  name                = "Poisen queue alert"
+  resource_group_name = var.resource_group_name
+  scopes              = [data.azurerm_application_insights.app_insighst.id]
+  description         = "Alerting if there is a message in a poisen queue."
+  location            = var.location
+ 
+  evaluation_frequency = "PT10M"
+  window_duration      = "PT10M"
+  severity             = 4
+  criteria {
+    query                   = <<-QUERY
+      customMetrics
+        | where name in ("${local.queue_name_one}", "${local.queue_name_two}")
+        | summarize avg(value) by name, bin(timestamp, 10m)
+ 
+      QUERY
+    time_aggregation_method = "Average"
+    threshold               = 1
+    operator                = "GreaterThan"
+    metric_measure_column =  "avg_value"
+    dimension {
+      name     = "name"
+      operator = "Include"
+      values   = ["*"]
+    }
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+ 
+  auto_mitigation_enabled          = true
+  enabled                          = true
+  query_time_range_override        = "PT1H"
+  skip_query_validation            = true
+ 
   lifecycle {
     ignore_changes = [
       tags["SEALZ-CostCenter"],
@@ -123,9 +171,9 @@ resource "azurerm_monitor_metric_alert" "missing_service_logs_alert" {
       values   = ["*"]
     }
   }
-  action {
-    action_group_id = azurerm_monitor_action_group.teams_action_group.id
-  }
+  # action {
+  #   action_group_id = azurerm_monitor_action_group.teams_action_group.id
+  # }
   lifecycle {
     ignore_changes = [
       tags["SEALZ-CostCenter"],
@@ -162,9 +210,9 @@ resource "azurerm_monitor_metric_alert" "exception_alert" {
   frequency     = "PT1M"
   window_size   = "PT30M"
 
-  action {
-    action_group_id = azurerm_monitor_action_group.teams_action_group.id
-  }
+  # action {
+  #   action_group_id = azurerm_monitor_action_group.teams_action_group.id
+  # }
 
   lifecycle {
     ignore_changes = [
