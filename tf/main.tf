@@ -21,7 +21,7 @@ provider "azurerm" {
 }
 
 locals {
-  env = "dev"
+  env            = "dev"
   queue_name_one = "orchestrator-azureml-events-length"
   queue_name_two = "service-ml-backend-events-length"
 }
@@ -44,10 +44,18 @@ resource "azurerm_app_service_plan" "example" {
   name                = "azure-functions-test-service-plan"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+  kind                = "Linux"
+  reserved            = true
 
   sku {
-    tier = "Standard"
-    size = "S1"
+    tier = "Dynamic"
+    size = "Y1"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      kind
+    ]
   }
 }
 
@@ -55,7 +63,7 @@ locals {
   monitored_queues = [
     {
       storage_account_url = "https://staammsspike.queue.core.windows.net"
-      queue_name          =  "testqueque"
+      queue_name          = "testqueque"
     },
     {
       storage_account_url = "https://staammsspike.queue.core.windows.net"
@@ -71,7 +79,10 @@ resource "azurerm_function_app" "example" {
   app_service_plan_id        = azurerm_app_service_plan.example.id
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
+  os_type                    = "linux"
+  version                    = "~4"
+
   app_settings = {
-    "MONITORED_QUEUES": jsonencode(local.monitored_queues)
+    "MONITORED_QUEUES" : jsonencode(local.monitored_queues)
   }
 }
