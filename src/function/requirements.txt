@@ -10,3 +10,7 @@ opentelemetry-instrumentation-requests>=0.45b0,<1.0.0
 opentelemetry-instrumentation-urllib3>=0.45b0,<1.0.0
 opentelemetry-instrumentation-fastapi>=0.45b0,<1.0.0
 azure-monitor-opentelemetry==1.6.0
+azure-identity>=1.6.0
+azure-storage-queue>=12.8.1
+pydantic>=1.8.2
+pydantic-settings>=2.0.0

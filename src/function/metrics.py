@@ -16,9 +16,10 @@ queue_metrics_monitor_blueprint = func.Blueprint()
  
 METER_NAME = "storage-account-queue-meter"
 settings = MonitorSettings()
+
 meter = get_meter_provider().get_meter(METER_NAME)
-gauges = create_metric_gauge(settings.MONITORED_QUEUES, meter)
-clients = create_azure_storage_queue_clients(settings.MONITORED_QUEUES)
+gauges = create_metric_gauge([], meter) #settings.MONITORED_QUEUES, meter)
+clients = create_azure_storage_queue_clients( []) #settings.MONITORED_QUEUES)
  
  
 @queue_metrics_monitor_blueprint.timer_trigger(schedule="0 */10 * * * *", arg_name="timer", run_on_startup=False)
@@ -26,7 +27,7 @@ async def storage_queue_monitor_job(timer: func.TimerRequest) -> None:
     if timer.past_due:
         logger.info("Queue monitor triggered late. Metrics might be delayed")
  
-    for queue_info in settings.MONITORED_QUEUES:
+    for queue_info in []:  #settings.MONITORED_QUEUES:
         client = clients[queue_info.queue_name]
  
         message_count = None

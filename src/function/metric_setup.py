@@ -10,7 +10,7 @@ from settings import MonitorQueueInformation
  
  
 def create_azure_storage_queue_clients(
-    monitoring_queues: List[MonitorQueueInformation],
+    monitoring_queues: List[MonitorQueueInformation  | None],
 ) -> dict[str, QueueClient]:
     clients = {}
     for queue_info in monitoring_queues:
@@ -22,7 +22,7 @@ def create_azure_storage_queue_clients(
     return clients
  
  
-def create_metric_gauge(monitoring_queues: List[MonitorQueueInformation], meter: Meter) -> dict[str, Gauge]:
+def create_metric_gauge(monitoring_queues: List[MonitorQueueInformation]| None, meter: Meter) -> dict[str, Gauge]:
     gauges = {}
     for queue_info in monitoring_queues:
         gauge_name = get_queue_gauge_name(queue_info.queue_name)
