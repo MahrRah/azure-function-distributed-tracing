@@ -5,23 +5,23 @@ from pydantic import Field, BaseModel, field_validator, validator
 from pydantic_settings import BaseSettings
  
 class MonitorQueueInformation(BaseModel):
-    account_name: str
+    storage_account_url: str
     queue_name: str
     key: Optional[str] = None
  
  
 class MonitorSettings(BaseSettings):
-    MONITORING_SCHEDULE_CRON: str = Field(description="Primary hostname for the app.")
-    CONNECTIONS_TO_BE_MONITORED: List[MonitorQueueInformation] = Field(..., description="List of connections to be monitored.")
+    MONITORING_SCHEDULE_CRON: Optional[str] = Field(description="Primary hostname for the app.", default="0 */10 * * * *")
+    MONITORED_QUEUES: List[MonitorQueueInformation] = Field(..., description="List of connections to be monitored.")
  
-    @field_validator('CONNECTIONS_TO_BE_MONITORED')
-    def parse_connections(self, v):
-        if isinstance(v, str):
-            return json.loads(v)
-        return v
+    # @field_validator('MONITORED_QUEUES',mode='before')
+    # def parse_connections(cls, v):
+    #     if isinstance(v, str):
+    #         return v
+    #     return v
     
- 
+  
 if __name__ == "__main__":
     settings = MonitorSettings()
-    print(settings.CONNECTIONS_TO_BE_MONITORED)
+    print(settings.MONITORED_QUEUES)
     print(settings.MONITORING_SCHEDULE_CRON)
