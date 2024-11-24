@@ -23,37 +23,29 @@ tracer = trace.get_tracer(__name__)
 @bp.durable_client_input(client_name="client")
 async def start_orchestrator(req: func.HttpRequest, client, context):
     
-    traceparent = context.trace_context.Traceparent
-    current_span = get_current_span()
+    # traceparent = context.trace_context.Traceparent
+    # current_span = get_current_span()
 
-    # pattern = re.compile(r"00-(\w+)-(\w+)-\d+")
-    # match = pattern.match(traceparent)
-    # if match:
-    #     trace_id_hex, span_id_hex = match.groups()
-    #     parent_trace_id = int(trace_id_hex, 16)
-    #     parent_span_id = int(span_id_hex, 16)
-    #     logger.info(f"handlers / start_orchestration received trace_id:{parent_trace_id}, span_id:{parent_span_id}")
-
-    carrier = {
-        "traceparent": context.trace_context.Traceparent,
-        "tracestate": context.trace_context.Tracestate,
-    }
+    # carrier = {
+    #     "traceparent": context.trace_context.Traceparent,
+    #     "tracestate": context.trace_context.Tracestate,
+    # }
     
-    # This manual trace context is needed to correlate the host logs with the ones from the worker
-    with tracer.start_as_current_span(
-        "start_orchestrator", kind=SpanKind.SERVER, context=extract(carrier)
-    ) as span:
+    # # This manual trace context is needed to correlate the host logs with the ones from the worker
+    # with tracer.start_as_current_span(
+    #     "start_orchestrator", kind=SpanKind.SERVER, context=extract(carrier)
+    # ) as span:
 
-        logger.info(f"start_orchestration received {traceparent}")
-        logger.info(f"start_orchestration current trace_id:{current_span._context.trace_id}, span_id:{current_span._context.span_id}")
+        # logger.info(f"start_orchestration received {traceparent}")
+        # logger.info(f"start_orchestration current trace_id:{current_span._context.trace_id}, span_id:{current_span._context.span_id}")
         
         job_id = str(uuid.uuid4())
-        child_span = _extract_context(span)
+        # child_span = _extract_context(span)
 
-        logger.info(f"start_orchestation: child_trace_id:{child_span['trace_id']}, child_span_id:{child_span['span_id']}")
+        # logger.info(f"start_orchestation: child_trace_id:{child_span['trace_id']}, child_span_id:{child_span['span_id']}")
 
         instance_id = await client.start_new(
-            "my_orchestrator", instance_id=job_id, client_input=child_span
+            "my_orchestrator", instance_id=job_id, client_input=job_id
         )
 
         logging.info(f"Started orchestration with ID = '{instance_id}'.")
@@ -62,46 +54,30 @@ async def start_orchestrator(req: func.HttpRequest, client, context):
 @bp.orchestration_trigger(context_name="context")
 def my_orchestrator(context: df.DurableOrchestrationContext):
 
-    ctx = _create_context(context.get_input())
-    current_span = get_current_span()
+    ctx = get_current_span().get_span_context()
+    trace_context = {
+        "trace_id": ctx.trace_id,
+        "span_id": ctx.span_id,
+    }
 
-    with tracer.start_as_current_span("my_orchestrator", context=ctx) as span:
+    logger.info("Call first action being called")
+    aml_job_id = yield context.call_activity(
+        "say_hello", {"city": "Tokyo", "trace_context": trace_context}
+    )
 
-        logger.info(f"my_orchestrator current trace_id:{current_span._context.trace_id}, span_id:{current_span._context.span_id}")
+    print(f"aml_job_id: {aml_job_id}")
 
-        log_received_ctx(ctx, "my_orchestrator")
+    logger.info("Persist entity state")
+    entityId = df.EntityId("main_entity", aml_job_id)
+    yield context.call_entity(entityId, "set", trace_context)
 
-        child_span = _extract_context(span)
-        logger.info(f"my_orchestrator: child_trace_id:{child_span['trace_id']}, child_span_id:{child_span['span_id']}")
-
-        logger.info("Call first action being called")
-        aml_job_id = yield context.call_activity(
-            "say_hello", {"city": "Tokyo", "trace_context": child_span}
-        )
-
-        print(f"aml_job_id: {aml_job_id}")
-
-        logger.info("Persist entity state")
-        entityId = df.EntityId("main_entity", aml_job_id)
-        yield context.call_entity(entityId, "set", child_span)
-
-        return aml_job_id
+    return aml_job_id
 
 
 @bp.activity_trigger(input_name="body")
 def say_hello(body: dict, context: func.Context) -> str:
 
-    current_span = get_current_span()
-    ctx = _create_context(body["trace_context"])
-
-    with tracer.start_as_current_span("say_hello", context=ctx) as span:
-        logger.info(f"say_hello current traceparent: {context.trace_context.trace_parent}")
-        logger.info(f"say_hello current trace_id:{current_span._context.trace_id}, span_id:{current_span._context.span_id}")
-        
-        child_span = _extract_context(span)
-        logger.info(f"say_hello: child_trace_id:{child_span['trace_id']}, child_span_id:{child_span['span_id']}")
-        log_received_ctx(ctx, "say_hello")
-
+        logger.info(f"say_hello")
         aml_job_id = str(uuid.uuid4())
         return f"{aml_job_id}"
 
@@ -109,12 +85,8 @@ def say_hello(body: dict, context: func.Context) -> str:
 @bp.entity_trigger(context_name="context", entity_name="main_entity")
 def persist_entity_state(context: df.DurableEntityContext) -> None:
 
-    current_span = get_current_span()
     ctx = _create_context(context.get_input())
-
     with tracer.start_as_current_span("set_entity", context=ctx):
-        logger.info(f"persist_entity_state current trace_id:{current_span._context.trace_id}, span_id:{current_span._context.span_id}")
-        log_received_ctx(ctx, "persist_entity_state")
         operation = context.operation_name
         if operation == "set":
             context.set_state(context.get_input())
@@ -138,15 +110,15 @@ async def process_aml_event(
     context,
 ) -> None:
     
-    logger.info(f"process_aml_events queue_trigger received {context.trace_context.Traceparent}")
+    #logger.info(f"process_aml_events queue_trigger received {context.trace_context.Traceparent}")
 
     aml_job_id = amlEventQueueMessage.get_body().decode('utf-8')
 
     entity_id = df.EntityId("main_entity", aml_job_id)
     mapping = await client.read_entity_state(entity_id)
 
-    trace_id = mapping.entity_state.get("trace_id")
-    span_id = mapping.entity_state.get("span_id")
+    # trace_id = mapping.entity_state.get("trace_id")
+    # span_id = mapping.entity_state.get("span_id")
 
     ctx = _create_context(mapping.entity_state)
     with tracer.start_as_current_span("process_aml_message", kind=SpanKind.PRODUCER, context=ctx) as span:
