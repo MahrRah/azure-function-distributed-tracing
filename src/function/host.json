@@ -3,12 +3,6 @@
   "extensions": {
     "queues": {
       "visibilityTimeout": "00:00:30"
-    },
-    "durableTask": {
-      "tracing": {
-        "DistributedTracingEnabled": true,
-        "Version": "V2"
-      }
     }
   },
   "extensionBundle": {
