@@ -75,24 +75,17 @@ def my_orchestrator(context: df.DurableOrchestrationContext):
         logger.info(f"my_orchestrator: child_trace_id:{child_span['trace_id']}, child_span_id:{child_span['span_id']}")
 
         logger.info("Call first action being called")
-        result1 = yield context.call_activity(
+        aml_job_id = yield context.call_activity(
             "say_hello", {"city": "Tokyo", "trace_context": child_span}
         )
-        logger.info("Call second action being called")
-        result2 = yield context.call_activity(
-            "say_hello", {"city": "Seattle", "trace_context": child_span}
-        )
-        logger.info("Call third action being called")
-        result3 = yield context.call_activity(
-            "say_hello", {"city": "London", "trace_context": child_span}
-        )
-        logger.info("Finish orchestration method")
+
+        print(f"aml_job_id: {aml_job_id}")
 
         logger.info("Persist entity state")
-        entityId = df.EntityId("main_entity", 1)
+        entityId = df.EntityId("main_entity", aml_job_id)
         yield context.call_entity(entityId, "set", child_span)
 
-        return [result1, result2, result3]
+        return aml_job_id
 
 
 @bp.activity_trigger(input_name="body")
@@ -108,7 +101,9 @@ def say_hello(body: dict, context: func.Context) -> str:
         child_span = _extract_context(span)
         logger.info(f"say_hello: child_trace_id:{child_span['trace_id']}, child_span_id:{child_span['span_id']}")
         log_received_ctx(ctx, "say_hello")
-        return f"Hello {body['city']}!"
+
+        aml_job_id = str(uuid.uuid4())
+        return f"{aml_job_id}"
 
 
 @bp.entity_trigger(context_name="context", entity_name="main_entity")
@@ -143,14 +138,18 @@ async def process_aml_event(
     context,
 ) -> None:
     
-    carrier = {
-        "traceparent": context.trace_context.Traceparent,
-        "tracestate": context.trace_context.Tracestate,
-    }
-
     logger.info(f"process_aml_events queue_trigger received {context.trace_context.Traceparent}")
 
-    with tracer.start_as_current_span("queue_trigger", kind=SpanKind.PRODUCER, context=extract(carrier)) as span:
+    aml_job_id = amlEventQueueMessage.get_body().decode('utf-8')
+
+    entity_id = df.EntityId("main_entity", aml_job_id)
+    mapping = await client.read_entity_state(entity_id)
+
+    trace_id = mapping.entity_state.get("trace_id")
+    span_id = mapping.entity_state.get("span_id")
+
+    ctx = _create_context(mapping.entity_state)
+    with tracer.start_as_current_span("process_aml_message", kind=SpanKind.PRODUCER, context=ctx) as span:
         
         logger.info("About to process inbound queue message")
 

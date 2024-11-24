@@ -10,6 +10,8 @@ Install  Azure Function Core Tools: see https://www.npmjs.com/package/azure-func
 
 Install Azurite: npm install -g azurite
 
+Create two queues in Azurite: `aml-events`and `api-events`
+
 To create the virtual environment start by doing a poetry install
 
 ```bash
