@@ -6,7 +6,7 @@ authors = ["Jean-Baptiste Ranson <jranson@microsoft.com>", "Tamara Rahimi <tamar
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python =  ">=3.12,<3.13"
+python =  ">=3.10,<3.13"
 azure-functions = "^1.2.0"
 azure-functions-durable = "^1.2.0"
 black = "^24.0.0"
