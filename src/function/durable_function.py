@@ -127,12 +127,12 @@ def persist_entity_state(context: df.DurableEntityContext) -> None:
 
 @bp.queue_trigger(
     arg_name="amlEventQueueMessage",
-    queue_name="spike-aml-events",
+    queue_name="aml-events",
     connection="AML_EVENTS_QUEUE_CONNECTION",
 )
 @bp.queue_output(
     arg_name="apiEventOutputBinding",
-    queue_name="spike-api-events",
+    queue_name="api-events",
     connection="API_EVENTS_QUEUE_CONNECTION",
 )
 @bp.durable_client_input(client_name="client")

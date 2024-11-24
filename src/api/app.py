@@ -61,6 +61,7 @@ logger2.setLevel(logging.INFO)
 @app.on_event("startup")
 async def start_up():
     logger.info("FastAPI starting")
+
     queue_client = QueueClient.from_connection_string(os.environ.get("STORAGE_ACCOUNT_CONNECTION_STRING"), "api-events")
     start_event_queue_consumer(queue_client)
 
