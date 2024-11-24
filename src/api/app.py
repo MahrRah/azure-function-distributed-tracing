@@ -52,10 +52,10 @@ URLLib3Instrumentor().instrument()
 logger = logging.getLogger()
 
 logger1 = logging.getLogger('azure.core.pipeline.policies.http_logging_policy')
-logger1.setLevel(logging.INFO)
+logger1.setLevel(logging.WARNING)
 
 logger2 = logging.getLogger('azure.monitor.opentelemetry.exporter.export._base')
-logger2.setLevel(logging.INFO) 
+logger2.setLevel(logging.WARNING) 
 
 
 @app.on_event("startup")
