@@ -6,6 +6,10 @@ Distributed tracing sample for Azure Durable Functions
  
 ### Poetry
 
+Install  Azure Function Core Tools: see https://www.npmjs.com/package/azure-functions-core-tools
+
+Install Azurite: npm install -g azurite
+
 To create the virtual environment start by doing a poetry install
 
 ```bash
@@ -24,6 +28,7 @@ FUNCTION_URL=http://localhost:7071/api/handlers
 APPLICATIONINSIGHTS_CONNECTION_STRING=
 ENV_LOCATION="westeurope"
 ENV_PROJECT_NAME="func-spike"
+STORAGE_ACCOUNT_CONNECTION_STRING=
 ```
 
 ## Run application

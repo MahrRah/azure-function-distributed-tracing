@@ -51,10 +51,17 @@ URLLib3Instrumentor().instrument()
 
 logger = logging.getLogger()
 
+logger1 = logging.getLogger('azure.core.pipeline.policies.http_logging_policy')
+logger1.setLevel(logging.INFO)
+
+logger2 = logging.getLogger('azure.monitor.opentelemetry.exporter.export._base')
+logger2.setLevel(logging.INFO) 
+
+
 @app.on_event("startup")
 async def start_up():
     logger.info("FastAPI starting")
-    queue_client = QueueClient.from_connection_string("AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;", "spike-api-events")
+    queue_client = QueueClient.from_connection_string(os.environ.get("STORAGE_ACCOUNT_CONNECTION_STRING"), "api-events")
     start_event_queue_consumer(queue_client)
 
 def start_event_queue_consumer(queue_client: QueueClient) -> None:
